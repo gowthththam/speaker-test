@@ -1,23 +1,44 @@
 <!DOCTYPE html>
-<html>
-<head><title>Live Transcription</title></head>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Employee Transcript & Emotion (WebSocket Demo)</title>
+  <style>
+    body { font-family: sans-serif; margin: 2em; }
+    #output { white-space: pre-wrap; background: #f8f8f8; padding: 1em; border-radius: 8px; }
+    .label { font-weight: bold; }
+  </style>
+</head>
 <body>
-  <h2>Live Transcription</h2>
-  <pre id="output">Waiting for data...</pre>
+  <h2>Employee Transcript & Emotion (WebSocket Demo)</h2>
+  <div id="status">Connecting...</div>
+  <div id="output"></div>
+
   <script>
-    const output = document.getElementById('output');
     const ws = new WebSocket('ws://localhost:7000');
+    const statusDiv = document.getElementById('status');
+    const outputDiv = document.getElementById('output');
 
-    ws.onmessage = (event) => {
-      output.textContent += `\n${event.data}`;
-    };
-
-    ws.onerror = (e) => {
-      output.textContent += "\n❌ WebSocket error";
+    ws.onopen = () => {
+      statusDiv.textContent = '✅ Connected to ws://localhost:7000';
     };
 
     ws.onclose = () => {
-      output.textContent += "\n❌ WebSocket closed";
+      statusDiv.textContent = '❌ Disconnected';
+    };
+
+    ws.onerror = (err) => {
+      statusDiv.textContent = '❌ WebSocket error';
+      console.error(err);
+    };
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        outputDiv.textContent = JSON.stringify(data, null, 2); // Pretty-print JSON
+      } catch (e) {
+        // Ignore non-JSON messages
+      }
     };
   </script>
 </body>
